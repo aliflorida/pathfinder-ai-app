@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./pathfinder-PathfinderAI.png" alt="Pathfinder AI Banner" width="100%">
+  <img src="PathfinderAI.png" alt="Pathfinder AI Banner" width="50%">
 </p>
 Pathfinder AI: Career Coach
 
