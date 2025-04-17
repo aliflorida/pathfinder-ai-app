@@ -13,20 +13,23 @@ genai.configure(api_key=GOOGLE_API_KEY)
 # Load Gemini model
 model = genai.GenerativeModel("models/gemini-1.5-pro-002")
 
-# Load vectorstore for resume search
+# Dynamically create vectorstore
 @st.cache_resource
-def load_vectorstore():
+def create_vectorstore():
+    sample_resume = "Marketing Specialist with 5 years of experience in SEO, content marketing, and automation. Looking for Digital Marketing Manager role."
+    docs = [Document(page_content=sample_resume)]
+
+    text_splitter = CharacterTextSplitter(chunk_size=300, chunk_overlap=50)
+    texts = text_splitter.split_documents(docs)
+
     embeddings = GoogleGenerativeAIEmbeddings(
         model="models/embedding-001",
         google_api_key=GOOGLE_API_KEY
     )
-    return FAISS.load_local(
-        "pathfinder_vectorstore",
-        embeddings,
-        allow_dangerous_deserialization=True
-    )
 
-vectorstore = load_vectorstore()
+    return FAISS.from_documents(texts, embeddings)
+
+vectorstore = create_vectorstore()
 retriever = vectorstore.as_retriever()
 
 # Streamlit App
