@@ -7,7 +7,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 # Load API key
-GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
+GOOGLE_API_KEY = st.secrets["AIzaSyCSoal54KKEn4fY6tI3AXWgp8CGKnVP96k"]
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Load Gemini model
