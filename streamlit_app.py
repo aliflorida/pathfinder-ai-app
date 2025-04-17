@@ -75,35 +75,44 @@ if submit:
         st.subheader("Generated Resume Summary")
         st.success(summary)
 
-        if JSEARCH_API_KEY and goal:
-            st.subheader("🔎 Real-Time Job Listings")
-            job_api_url = "https://jsearch.p.rapidapi.com/search"
-            headers = {
-                "X-RapidAPI-Key": JSEARCH_API_KEY,
-                "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
-            }
-            params = {"query": goal, "page": "1"}
-            if location:
-                params["location"] = location
+     if JSEARCH_API_KEY and goal:
+    st.subheader("🔎 Real-Time Job Listings")
 
-            try:
-                response = requests.get(job_api_url, headers=headers, params=params)
-                if response.status_code == 200:
-                    results = response.json().get("data", [])
-                    if results:
-                        for job in results[:5]:
-                            st.markdown(f"**{job['job_title']}** at *{job['employer_name']}*  ")
-                            st.caption(f"{job['job_city']}, {job['job_state']} | {job['job_employment_type']}")
-                            st.write(job['job_description'][:250] + "...")
-                            st.markdown(f"[View Job Posting]({job['job_apply_link']})")
-                            st.markdown("---")
-                    else:
-                        st.info("No job matches found for your role yet — try another search.")
-                else:
-                    st.warning("Unable to fetch job listings. Please try again later.")
-            except Exception as e:
-                st.error(f"Job search failed: {str(e)}")
+    job_title = goal or "Marketing Manager"
+    search_query = f"{job_title} in {location}" if location else job_title
+
+    url = "https://jsearch.p.rapidapi.com/search"
+    headers = {
+        "X-RapidAPI-Key": JSEARCH_API_KEY,
+        "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
+    }
+    params = {
+        "query": search_query,
+        "page": "1",
+        "num_pages": "1"
+    }
+
+    st.write("📡 Sending query to JSearch:", search_query)
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        results = response.json().get("data", [])
+
+        if results:
+            for job in results[:5]:
+                st.markdown(f"**{job['job_title']}** at *{job['employer_name']}*")
+                st.caption(f"{job['job_city']}, {job['job_state']} | {job['job_employment_type']}")
+                st.write(job['job_description'][:250] + "...")
+                st.markdown(f"[Apply Here]({job['job_apply_link']})")
+                st.markdown("---")
         else:
-            st.caption("⚠️ Job search API not configured. Add your JSEARCH_API_KEY to enable this feature.")
+            st.info("No jobs found. Try a broader title or different location.")
+
+    except requests.exceptions.RequestException as e:
+        st.error(f"Unable to fetch job listings. API error: {str(e)}")
+else:
+    st.caption("⚠️ Job search API not configured. Add your JSEARCH_API_KEY to enable this feature.")
+     
 
 st.caption("Created by Alison Morano | Powered by Gemini 1.5 + FAISS + LangChain + JSearch")
