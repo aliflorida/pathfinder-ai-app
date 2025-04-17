@@ -56,8 +56,10 @@ with st.form("input_form"):
     role = st.text_input("Current Role")
     skills = st.text_input("Key Skills")
     goal = st.text_input("Career Goal")
-    tone = st.selectbox("Tone", ["confident", "energetic", "professional", "creative"], index=0)
-    query = st.text_input("Ask Pathfinder", "")
+    tone = st.selectbox(
+        "Choose a tone for your resume summary",
+        ["professional", "confident", "enthusiastic", "strategic", "creative"]
+    )
     location = st.text_input("Job Search Location (optional)")
     submit = st.form_submit_button("Generate")
 
@@ -70,14 +72,8 @@ if submit:
         response = model.generate_content(prompt)
         summary = response.text.strip()
 
-        docs = retriever.invoke(query)
-        insights = "\n\n".join([doc.page_content for doc in docs])
-
         st.subheader("Generated Resume Summary")
         st.success(summary)
-
-        st.subheader("Matching Resume Patterns")
-        st.info(insights if insights else "No relevant patterns found.")
 
         if JSEARCH_API_KEY and goal:
             st.subheader("🔎 Real-Time Job Listings")
