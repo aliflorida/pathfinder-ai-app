@@ -13,8 +13,8 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from PyPDF2 import PdfReader
 
 # Load API keys
-GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
-JSEARCH_API_KEY = st.secrets.get("JSEARCH_API_KEY")
+GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY", "")
+JSEARCH_API_KEY = st.secrets.get("JSEARCH_API_KEY", "")
 
 genai.configure(api_key=GOOGLE_API_KEY)
 
@@ -75,44 +75,32 @@ if submit:
         st.subheader("Generated Resume Summary")
         st.success(summary)
 
-st.write("🔐 Loaded JSEARCH_API_KEY:", JSEARCH_API_KEY[:5] if JSEARCH_API_KEY and JSEARCH_API_KEY.strip() != "" else "None")
-if JSEARCH_API_KEY and goal:
-    st.subheader("🔎 Real-Time Job Listings")
+        if JSEARCH_API_KEY.strip() and goal:
+            st.subheader("🔎 Real-Time Job Listings")
+            job_api_url = "https://jsearch.p.rapidapi.com/search"
+            headers = {
+                "X-RapidAPI-Key": JSEARCH_API_KEY,
+                "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
+            }
+            query = f"{goal} in {location}" if location else goal
+            params = {"query": query, "page": "1", "num_pages": "1"}
 
-    job_title = goal or "Marketing Manager"
-    search_query = f"{job_title} in {location}" if location else job_title
-
-    url = "https://jsearch.p.rapidapi.com/search"
-    headers = {
-        "X-RapidAPI-Key": JSEARCH_API_KEY,
-        "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
-    }
-    params = {
-        "query": search_query,
-        "page": "1",
-        "num_pages": "1"
-    }
-
-    st.write("📡 Sending query to JSearch:", search_query)
-
-    try:
-        response = requests.get(url, headers=headers, params=params)
-        response.raise_for_status()
-        results = response.json().get("data", [])
-
-        if results:
-            for job in results[:5]:
-                st.markdown(f"**{job['job_title']}** at *{job['employer_name']}*")
-                st.caption(f"{job['job_city']}, {job['job_state']} | {job['job_employment_type']}")
-                st.write(job['job_description'][:250] + "...")
-                st.markdown(f"[Apply Here]({job['job_apply_link']})")
-                st.markdown("---")
+            try:
+                response = requests.get(job_api_url, headers=headers, params=params)
+                response.raise_for_status()
+                results = response.json().get("data", [])
+                if results:
+                    for job in results[:5]:
+                        st.markdown(f"**{job['job_title']}** at *{job['employer_name']}*")
+                        st.caption(f"{job['job_city']}, {job['job_state']} | {job['job_employment_type']}")
+                        st.write(job['job_description'][:250] + "...")
+                        st.markdown(f"[View Job Posting]({job['job_apply_link']})")
+                        st.markdown("---")
+                else:
+                    st.info("No job matches found for your role yet — try another search.")
+            except Exception as e:
+                st.error(f"Job search failed: {str(e)}")
         else:
-            st.info("No jobs found. Try a broader title or different location.")
-
-    except requests.exceptions.RequestException as e:
-        st.error(f"Unable to fetch job listings. API error: {str(e)}")
-else:
-    st.caption("⚠️ Job search API not configured. Add your JSEARCH_API_KEY to enable this feature.")
+            st.caption("⚠️ Job search API not configured or query missing. Add your JSEARCH_API_KEY to enable this feature.")
 
 st.caption("Created by Alison Morano | Powered by Gemini 1.5 + FAISS + LangChain + JSearch")
