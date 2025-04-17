@@ -24,12 +24,15 @@ if uploaded_file:
     reader = PdfReader(uploaded_file)
     uploaded_text = "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
 
+# Fallback resume content
+sample_resume = uploaded_text or "Experienced professional with a background in strategy, marketing, and AI-driven content development."
+if not uploaded_text:
+    st.warning("No resume uploaded — using sample resume data for vector analysis.")
+
 # Dynamically create vectorstore
 @st.cache_resource
 def create_vectorstore():
-    sample_resume = uploaded_text or ""
     docs = [Document(page_content=sample_resume)]
-
     text_splitter = CharacterTextSplitter(chunk_size=300, chunk_overlap=50)
     texts = text_splitter.split_documents(docs)
 
