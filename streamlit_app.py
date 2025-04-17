@@ -6,6 +6,7 @@ from langchain.vectorstores import FAISS
 from langchain.schema import Document
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from PyPDF2 import PdfReader
 
 # Load API key
 GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
@@ -16,10 +17,17 @@ genai.configure(api_key=GOOGLE_API_KEY)
 # Load Gemini model
 model = genai.GenerativeModel("models/gemini-1.5-pro-002")
 
+# PDF Resume Upload
+uploaded_text = ""
+uploaded_file = st.file_uploader("Upload Resume (PDF optional)", type="pdf")
+if uploaded_file:
+    reader = PdfReader(uploaded_file)
+    uploaded_text = "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
+
 # Dynamically create vectorstore
 @st.cache_resource
 def create_vectorstore():
-    sample_resume = ""
+    sample_resume = uploaded_text or ""
     docs = [Document(page_content=sample_resume)]
 
     text_splitter = CharacterTextSplitter(chunk_size=300, chunk_overlap=50)
@@ -52,47 +60,56 @@ with st.form("input_form"):
     submit = st.form_submit_button("Generate")
 
 if submit:
-    # Generate summary
-    prompt = f"""
-    Write a {tone} professional resume summary for {name}, currently a {role}, \
-    with skills in {skills}, seeking a role in {goal}.
-    """
-    response = model.generate_content(prompt)
-    summary = response.text.strip()
+    with st.spinner("Generating resume and retrieving job insights..."):
+        # Generate summary
+        prompt = f"""
+        Write a {tone} professional resume summary for {name}, currently a {role}, \
+        with skills in {skills}, seeking a role in {goal}.
+        """
+        response = model.generate_content(prompt)
+        summary = response.text.strip()
 
-    # Query the retriever
-    docs = retriever.invoke(query)
-    insights = "\n\n".join([doc.page_content for doc in docs])
+        # Query the retriever
+        docs = retriever.invoke(query)
+        insights = "\n\n".join([doc.page_content for doc in docs])
 
-    # Display results
-    st.subheader("Generated Resume Summary")
-    st.success(summary)
+        # Display results
+        st.subheader("Generated Resume Summary")
+        st.success(summary)
 
-    st.subheader("Matching Resume Patterns")
-    st.info(insights if insights else "No relevant patterns found.")
+        st.subheader("Matching Resume Patterns")
+        st.info(insights if insights else "No relevant patterns found.")
 
-    # Real-time job search (optional)
-    if JSEARCH_API_KEY and goal:
-        st.subheader("🔎 Real-Time Job Listings")
-        job_api_url = "https://jsearch.p.rapidapi.com/search"
-        headers = {
-            "X-RapidAPI-Key": JSEARCH_API_KEY,
-            "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
-        }
-        params = {"query": goal, "page": "1"}
-        if location:
-            params["location"] = location
+        # Real-time job search (optional)
+        if JSEARCH_API_KEY and goal:
+            st.subheader("🔎 Real-Time Job Listings")
+            job_api_url = "https://jsearch.p.rapidapi.com/search"
+            headers = {
+                "X-RapidAPI-Key": JSEARCH_API_KEY,
+                "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
+            }
+            params = {"query": goal, "page": "1"}
+            if location:
+                params["location"] = location
 
-        response = requests.get(job_api_url, headers=headers, params=params)
-        if response.status_code == 200:
-            results = response.json().get("data", [])
-            for job in results[:5]:
-                st.markdown(f"**{job['job_title']}** at *{job['employer_name']}*  ")
-                st.caption(f"{job['job_city']}, {job['job_state']} | {job['job_employment_type']}")
-                st.write(job['job_description'][:250] + "...")
-                st.markdown(f"[View Job Posting]({job['job_apply_link']})")
-                st.markdown("---")
+            try:
+                response = requests.get(job_api_url, headers=headers, params=params)
+                if response.status_code == 200:
+                    results = response.json().get("data", [])
+                    if results:
+                        for job in results[:5]:
+                            st.markdown(f"**{job['job_title']}** at *{job['employer_name']}*  ")
+                            st.caption(f"{job['job_city']}, {job['job_state']} | {job['job_employment_type']}")
+                            st.write(job['job_description'][:250] + "...")
+                            st.markdown(f"[View Job Posting]({job['job_apply_link']})")
+                            st.markdown("---")
+                    else:
+                        st.info("No job matches found for your role yet — try another search.")
+                else:
+                    st.warning("Unable to fetch job listings. Please try again later.")
+            except Exception as e:
+                st.error(f"Job search failed: {str(e)}")
         else:
-            st.warning("Unable to fetch job listings. Check your JSearch API key or try again later.")
+            st.caption("⚠️ Job search API not configured. Add your JSEARCH_API_KEY to enable this feature.")
 
 st.caption("Created by Alison Morano | Powered by Gemini 1.5 + FAISS + LangChain + JSearch")
