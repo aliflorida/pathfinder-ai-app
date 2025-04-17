@@ -1,4 +1,7 @@
-🧭 Pathfinder AI: Career Coach
+<p align="center">
+  <img src="./pathfinder-banner.png" alt="Pathfinder AI Banner" width="100%">
+</p>
+Pathfinder AI: Career Coach
 
 Pathfinder AI is a resume-boosting, job-finding assistant built with Generative AI, LangChain, FAISS, and real-time job search APIs. Whether you're a marketing specialist or a cybersecurity analyst, Pathfinder helps you:
 
