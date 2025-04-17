@@ -75,7 +75,7 @@ if submit:
         st.subheader("Generated Resume Summary")
         st.success(summary)
 
-     if JSEARCH_API_KEY and goal:
+if JSEARCH_API_KEY and goal:
     st.subheader("🔎 Real-Time Job Listings")
 
     job_title = goal or "Marketing Manager"
@@ -113,6 +113,5 @@ if submit:
         st.error(f"Unable to fetch job listings. API error: {str(e)}")
 else:
     st.caption("⚠️ Job search API not configured. Add your JSEARCH_API_KEY to enable this feature.")
-     
 
 st.caption("Created by Alison Morano | Powered by Gemini 1.5 + FAISS + LangChain + JSearch")
