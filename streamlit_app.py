@@ -7,7 +7,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 # Load API key
-GOOGLE_API_KEY = st.secrets["AIzaSyCSoal54KKEn4fY6tI3AXWgp8CGKnVP96k"]
+GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Load Gemini model
@@ -65,4 +65,3 @@ if submit:
     st.info(insights if insights else "No relevant patterns found.")
 
 st.caption("Created by Alison Morano | Powered by LangGraph, FAISS, Gemini 1.5")
-
