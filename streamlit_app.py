@@ -75,6 +75,7 @@ if submit:
         st.subheader("Generated Resume Summary")
         st.success(summary)
 
+st.write("🔐 Loaded JSEARCH_API_KEY:", JSEARCH_API_KEY[:5] if JSEARCH_API_KEY else "None")
 if JSEARCH_API_KEY and goal:
     st.subheader("🔎 Real-Time Job Listings")
 
