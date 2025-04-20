@@ -63,12 +63,26 @@ with st.form("input_form"):
     location = st.text_input("Job Search Location (optional)")
     industry = st.selectbox(
         "Select Your Industry (optional)",
-        ["", "Marketing", "Finance", "Healthcare", "Technology", "Education", "Customer Service", "Sales", "Project Management"]
+        [
+            "", "Marketing", "Finance", "Healthcare", "Technology", "Education",
+            "Customer Service", "Sales", "Project Management", "Human Resources",
+            "Engineering", "Design", "Legal", "Operations", "Data Science",
+            "Public Relations", "Supply Chain", "Construction", "Consulting",
+            "Real Estate", "Hospitality", "Retail", "Manufacturing", "Non-Profit",
+            "Politics", "Campaigns", "Artificial Intelligence", "XR / Immersive Tech", "Other"
+        ]
     )
+    if industry == "Other":
+        custom_industry = st.text_input("Please enter your industry")
+        industry_to_use = custom_industry.strip()
+    else:
+        industry_to_use = industry
+
     st.caption(
         "🧠 Optional: Select your industry to take a short AI-generated skills quiz. "
         "Check off skills you have — we’ll tailor your resume and suggest free learning resources for any you don’t."
     )
+    st.caption("🔁 Be sure to click 'Generate' again anytime you change anything in the form — including your industry or skill selections.")
     submit = st.form_submit_button("Generate")
 
 selected_skills = []
@@ -76,13 +90,13 @@ missing_skills = []
 generated_skills = []
 
 if submit:
-    if industry:
-        with st.spinner(f"Loading skill assessment for {industry}..."):
-            skill_prompt = f"List 5 essential skills that professionals in the {industry} industry should have. Respond with only the list, no explanation."
+    if industry_to_use:
+        with st.spinner(f"Loading skill assessment for {industry_to_use}..."):
+            skill_prompt = f"List 5 essential skills that professionals in the {industry_to_use} industry should have. Respond with only the list, no explanation."
             skill_response = model.generate_content(skill_prompt)
             generated_skills = [skill.strip("-• ") for skill in skill_response.text.strip().split('\n') if skill.strip()]
 
-        st.subheader(f"{industry} Skill Check")
+        st.subheader(f"{industry_to_use} Skill Check")
         for skill in generated_skills:
             if st.checkbox(f"Do you have experience with {skill}?"):
                 selected_skills.append(skill)
