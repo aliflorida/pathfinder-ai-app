@@ -51,6 +51,14 @@ retriever = vectorstore.as_retriever()
 st.title("🧭 Pathfinder AI: Career Coach")
 st.markdown("Get resume summaries + job fit insights powered by Gemini.")
 
+industry_options = sorted([
+    "", "Artificial Intelligence", "Campaigns", "Consulting", "Construction", "Customer Service",
+    "Data Science", "Design", "Education", "Engineering", "Finance", "Healthcare", "Hospitality",
+    "Human Resources", "Legal", "Manufacturing", "Marketing", "Non-Profit", "Operations",
+    "Politics", "Project Management", "Public Relations", "Real Estate", "Retail", "Sales",
+    "Supply Chain", "Technology", "XR / Immersive Tech", "Other"
+])
+
 with st.form("input_form"):
     name = st.text_input("Name")
     role = st.text_input("Current Role")
@@ -60,17 +68,8 @@ with st.form("input_form"):
         ["professional", "confident", "enthusiastic", "strategic", "creative"]
     )
     location = st.text_input("Job Search Location (optional)")
-    industry = st.selectbox(
-        "Select Your Industry (optional)",
-        [
-            "", "Marketing", "Finance", "Healthcare", "Technology", "Education",
-            "Customer Service", "Sales", "Project Management", "Human Resources",
-            "Engineering", "Design", "Legal", "Operations", "Data Science",
-            "Public Relations", "Supply Chain", "Construction", "Consulting",
-            "Real Estate", "Hospitality", "Retail", "Manufacturing", "Non-Profit",
-            "Politics", "Campaigns", "Artificial Intelligence", "XR / Immersive Tech", "Other"
-        ]
-    )
+    industry = st.selectbox("Select Your Industry (optional)", industry_options)
+
     if industry == "Other":
         custom_industry = st.text_input("Please enter your industry")
         industry_to_use = custom_industry.strip()
@@ -97,64 +96,66 @@ if submit:
             generated_skills = [skill.strip("-• ") for skill in skill_response.text.strip().split('\n') if skill.strip()]
 
         st.subheader(f"{industry_to_use} Skill Check")
+        st.markdown("Check all skills you have experience with:")
+        skill_selections = {}
         for skill in generated_skills:
-            if st.checkbox(f"Do you have experience with {skill}?"):
-                selected_skills.append(skill)
+            skill_selections[skill] = st.checkbox(skill)
 
-        custom_skills = st.text_input("Additional Skills (optional)")
+        if st.button("Confirm Skills Selection"):
+            selected_skills = [skill for skill, checked in skill_selections.items() if checked]
+            custom_skills = st.text_input("Additional Skills (optional)")
+            missing_skills = [s for s in generated_skills if s not in selected_skills]
 
-        missing_skills = [s for s in generated_skills if s not in selected_skills]
+            if missing_skills:
+                st.subheader("📚 Recommended Learning for Skills You Didn't Check")
+                for skill in missing_skills:
+                    link_prompt = f"Suggest a free or well-known online course or video tutorial for someone who wants to learn '{skill}'. Return only one recommendation."
+                    link_response = model.generate_content(link_prompt)
+                    st.markdown(f"**{skill}**: {link_response.text.strip()}")
 
-        if missing_skills:
-            st.subheader("📚 Recommended Learning for Skills You Didn't Check")
-            for skill in missing_skills:
-                link_prompt = f"Suggest a free or well-known online course or video tutorial for someone who wants to learn '{skill}'. Return only one recommendation."
-                link_response = model.generate_content(link_prompt)
-                st.markdown(f"**{skill}**: {link_response.text.strip()}")
+            with st.spinner("Generating resume and retrieving job insights..."):
+                combined_skills = ", ".join(selected_skills)
+                if custom_skills:
+                    combined_skills += ", " + custom_skills
 
-    with st.spinner("Generating resume and retrieving job insights..."):
-        combined_skills = ", ".join(selected_skills)
-        if custom_skills:
-            combined_skills += ", " + custom_skills
+                prompt = f"""
+                Write a {tone} professional resume summary for {name}, currently a {role}, \
+                with skills in {combined_skills}, seeking a role in {goal}.
+                """
+                response = model.generate_content(prompt)
+                summary = response.text.strip()
 
-        prompt = f"""
-        Write a {tone} professional resume summary for {name}, currently a {role}, \
-        with skills in {combined_skills}, seeking a role in {goal}.
-        """
-        response = model.generate_content(prompt)
-        summary = response.text.strip()
+                st.subheader("Generated Resume Summary")
+                st.success(summary)
 
-        st.subheader("Generated Resume Summary")
-        st.success(summary)
+                if JSEARCH_API_KEY.strip() and goal:
+                    st.subheader("🔎 Real-Time Job Listings")
+                    job_api_url = "https://jsearch.p.rapidapi.com/search"
+                    headers = {
+                        "X-RapidAPI-Key": JSEARCH_API_KEY,
+                        "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
+                    }
+                    query = f"{goal} in {location}" if location else goal
+                    params = {"query": query, "page": "1", "num_pages": "1"}
 
-        if JSEARCH_API_KEY.strip() and goal:
-            st.subheader("🔎 Real-Time Job Listings")
-            job_api_url = "https://jsearch.p.rapidapi.com/search"
-            headers = {
-                "X-RapidAPI-Key": JSEARCH_API_KEY,
-                "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
-            }
-            query = f"{goal} in {location}" if location else goal
-            params = {"query": query, "page": "1", "num_pages": "1"}
+                    try:
+                        response = requests.get(job_api_url, headers=headers, params=params)
+                        response.raise_for_status()
+                        results = response.json().get("data", [])
 
-            try:
-                response = requests.get(job_api_url, headers=headers, params=params)
-                response.raise_for_status()
-                results = response.json().get("data", [])
-
-                if results:
-                    job_count = st.radio("How many job listings would you like to see?", [5, 10, 15], index=0)
-                    for job in results[:job_count]:
-                        st.markdown(f"**{job['job_title']}** at *{job['employer_name']}*")
-                        st.caption(f"{job['job_city']}, {job['job_state']} | {job['job_employment_type']}")
-                        st.write(job['job_description'][:250] + "...")
-                        st.markdown(f"[View Job Posting]({job['job_apply_link']})")
-                        st.markdown("---")
+                        if results:
+                            job_count = st.radio("How many job listings would you like to see?", [5, 10, 15], index=0)
+                            for job in results[:job_count]:
+                                st.markdown(f"**{job['job_title']}** at *{job['employer_name']}*")
+                                st.caption(f"{job['job_city']}, {job['job_state']} | {job['job_employment_type']}")
+                                st.write(job['job_description'][:250] + "...")
+                                st.markdown(f"[View Job Posting]({job['job_apply_link']})")
+                                st.markdown("---")
+                        else:
+                            st.info("No job matches found for your role yet — try another search.")
+                    except Exception as e:
+                        st.error(f"Job search failed: {str(e)}")
                 else:
-                    st.info("No job matches found for your role yet — try another search.")
-            except Exception as e:
-                st.error(f"Job search failed: {str(e)}")
-        else:
-            st.caption("⚠️ Job search API not configured or query missing. Add your JSEARCH_API_KEY to enable this feature.")
+                    st.caption("⚠️ Job search API not configured or query missing. Add your JSEARCH_API_KEY to enable this feature.")
 
 st.caption("Created by Alison Morano | Powered by Gemini 1.5 + FAISS + LangChain + JSearch")
