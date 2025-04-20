@@ -89,13 +89,44 @@ generated_skills = []
 custom_skills = ""
 
 if submit:
-    if industry_to_use:
-        with st.spinner(f"Loading skill assessment for {industry_to_use}..."):
-            skill_prompt = f"List 5 essential skills that professionals in the {industry_to_use} industry should have. Respond with only the list, no explanation."
-            skill_response = model.generate_content(skill_prompt)
-            generated_skills = [skill.strip("-• ") for skill in skill_response.text.strip().split('\n') if skill.strip()]
+    custom_skills = st.text_input("Additional Skills (optional, comma-separated)")
 
-        st.subheader(f"{industry_to_use} Skill Check")
+    if industry_to_use:
+        use_quiz = st.checkbox("Take AI-generated skills quiz for this industry?", value=True)
+
+        if use_quiz:
+            with st.spinner(f"Loading skill assessment for {industry_to_use}..."):
+                skill_prompt = f"List 5 essential skills that professionals in the {industry_to_use} industry should have. Respond with only the list, no explanation."
+                skill_response = model.generate_content(skill_prompt)
+                generated_skills = [skill.strip("-• ") for skill in skill_response.text.strip().split('
+') if skill.strip()]
+
+            st.subheader(f"{industry_to_use} Skill Check")
+            st.markdown("Check all skills you have experience with:")
+
+            if "skill_selections" not in st.session_state:
+                st.session_state.skill_selections = {}
+
+            for skill in generated_skills:
+                if skill not in st.session_state.skill_selections:
+                    st.session_state.skill_selections[skill] = False
+
+                st.session_state.skill_selections[skill] = st.checkbox(
+                    skill,
+                    key=f"skill_{skill}",
+                    value=st.session_state.skill_selections[skill]
+                )
+
+            confirm = st.button("✅ Confirm Skills Selection")
+            reset = st.button("🔄 Clear and Re-select Skills")
+
+            if reset:
+                for skill in generated_skills:
+                    st.session_state.skill_selections[skill] = False
+                st.experimental_rerun()
+
+            if confirm:
+                selected_skills = [skill for skill, checked in st.session_state.skill_selections.items() if checked]
         st.markdown("Check all skills you have experience with:")
 
         if "skill_selections" not in st.session_state:
@@ -134,6 +165,7 @@ if submit:
             with st.spinner("Generating resume and retrieving job insights..."):
                 combined_skills = ", ".join(selected_skills)
                 if custom_skills:
+                    combined_skills += ", " + custom_skills
                     combined_skills += ", " + custom_skills
 
                 prompt = f"""
