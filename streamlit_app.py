@@ -101,7 +101,7 @@ if submit:
                 st.code(skill_response.text, language="markdown")
                 raw_skills = skill_response.text.strip().split("\\n")
             generated_skills = [skill.strip("-• ") for skill in raw_skills if skill.strip()]
-            generated_skills = [skill.strip("-• ") for skill in skill_response.text.strip().split("") if skill.strip()]
+            generated_skills = [skill.strip("-• ") for skill in skill_response.text.strip().split("\\n") if skill.strip()]
 
             st.subheader(f"{industry_to_use} Skill Check")
             
