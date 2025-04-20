@@ -95,7 +95,7 @@ if submit:
             skill_response = model.generate_content(skill_prompt)
             generated_skills = [skill.strip("-• ") for skill in skill_response.text.strip().split('\n') if skill.strip()]
 
-                st.subheader(f"{industry_to_use} Skill Check")
+        st.subheader(f"{industry_to_use} Skill Check")
         st.markdown("Check all skills you have experience with:")
 
         if "skill_selections" not in st.session_state:
@@ -110,19 +110,6 @@ if submit:
                 key=f"skill_{skill}",
                 value=st.session_state.skill_selections[skill]
             )
-
-                if "skill_selections" not in st.session_state:
-            st.session_state.skill_selections = {}
-
-for skill in generated_skills:
-    if skill not in st.session_state.skill_selections:
-        st.session_state.skill_selections[skill] = False
-
-    st.session_state.skill_selections[skill] = st.checkbox(
-        skill,
-        key=f"skill_{skill}",
-        value=st.session_state.skill_selections[skill]
-    )
 
         confirm = st.button("✅ Confirm Skills Selection")
         reset = st.button("🔄 Clear and Re-select Skills")
