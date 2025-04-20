@@ -130,7 +130,8 @@ if submit:
             st.caption("⚠️ Job search API not configured or query missing. Add your JSEARCH_API_KEY to enable this feature.")
 
 st.subheader("📚 Recommended Skills & Learning Resources")
-# Convert plain text list to markdown with clickable links (basic heuristic)
+for line in learning_tips.split("\n"):
+    if line.strip():
         skill = line.split("–")[0].strip("- •: ") if "–" in line else line.strip("- •")
         query = skill.replace(" ", "+")
         search_link = f"https://www.google.com/search?q={query}+course"
