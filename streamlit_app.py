@@ -98,10 +98,38 @@ if submit:
             with st.spinner(f"Loading skill assessment for {industry_to_use}..."):
                 skill_prompt = f"List 5 essential skills that professionals in the {industry_to_use} industry should have. Respond with only the list, no explanation."
                 skill_response = model.generate_content(skill_prompt)
-                st.code(skill_response.text, language="markdown")
-                raw_skills = skill_response.text.strip().split("\\n")
-            generated_skills = [skill.strip("-• ") for skill in raw_skills if skill.strip()]
-            generated_skills = [skill.strip("-• ") for skill in skill_response.text.strip().split("\\n") if skill.strip()]
+                # st.code(skill_response.text, language="markdown")
+                raw_skills = skill_response.text.strip().split("")
+                generated_skills = [skill.strip("-• ") for skill in raw_skills if skill.strip()]
+
+            st.subheader(f"{industry_to_use} Skill Check")
+            st.markdown("Check all skills you have experience with:")
+
+            if "skill_selections" not in st.session_state:
+                st.session_state.skill_selections = {}
+
+            for skill in generated_skills:
+                if skill not in st.session_state.skill_selections:
+                    st.session_state.skill_selections[skill] = False
+
+                st.session_state.skill_selections[skill] = st.checkbox(
+                    skill,
+                    key=f"skill_{skill}",
+                    value=st.session_state.skill_selections[skill]
+                )
+
+            confirm = st.button("✅ Confirm Skills Selection")
+            reset = st.button("🔄 Clear and Re-select Skills")
+
+            if reset:
+                for skill in generated_skills:
+                    st.session_state.skill_selections[skill] = False
+                st.experimental_rerun()
+
+            if confirm:
+                selected_skills = [skill for skill, checked in st.session_state.skill_selections.items() if checked]
+                generated_skills = [skill.strip("-• ") for skill in skill_response.text.strip().split("
+") if skill.strip()]
 
             st.subheader(f"{industry_to_use} Skill Check")
             
