@@ -1,4 +1,3 @@
-st.write("📦 Raw response:", response.json())
 import streamlit as st
 
 # MUST BE FIRST
