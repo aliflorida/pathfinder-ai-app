@@ -136,5 +136,4 @@ for line in learning_tips.split("\n"):
         query = skill.replace(" ", "+")
         search_link = f"https://www.google.com/search?q={query}+course"
         st.markdown(f"- {skill} → [Find a course]({search_link})")
-
 st.caption("Created by Alison Morano | Powered by Gemini 1.5 + FAISS + LangChain + JSearch")
