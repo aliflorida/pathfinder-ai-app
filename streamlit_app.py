@@ -97,18 +97,23 @@ if submit:
 
         st.subheader(f"{industry_to_use} Skill Check")
         st.markdown("Check all skills you have experience with:")
-        skill_selections = {}
+
+        if "skill_selections" not in st.session_state:
+            st.session_state.skill_selections = {skill: False for skill in generated_skills}
+
         for skill in generated_skills:
-            skill_selections[skill] = st.checkbox(skill, key=skill)
+            st.session_state.skill_selections[skill] = st.checkbox(skill, key=skill, value=st.session_state.skill_selections[skill])
 
         confirm = st.button("✅ Confirm Skills Selection")
         reset = st.button("🔄 Clear and Re-select Skills")
 
         if reset:
+            for skill in generated_skills:
+                st.session_state.skill_selections[skill] = False
             st.experimental_rerun()
 
         if confirm:
-            selected_skills = [skill for skill, checked in skill_selections.items() if checked]
+            selected_skills = [skill for skill, checked in st.session_state.skill_selections.items() if checked]
             custom_skills = st.text_input("Additional Skills (optional)")
             missing_skills = [s for s in generated_skills if s not in selected_skills]
 
