@@ -15,6 +15,7 @@ from PyPDF2 import PdfReader
 # Load API keys
 GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY", "")
 JSEARCH_API_KEY = st.secrets.get("JSEARCH_API_KEY", "")
+st.write("🔐 Loaded JSEARCH_API_KEY:", JSEARCH_API_KEY[:5] + "..." if JSEARCH_API_KEY else "None")
 
 genai.configure(api_key=GOOGLE_API_KEY)
 
