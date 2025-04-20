@@ -134,8 +134,10 @@ st.subheader("📚 Recommended Skills & Learning Resources")
 for line in learning_tips.split("
 "):
     if line.strip():
-        if "http" in line:
-            st.markdown(f"- {line}")
+        skill = line.split("–")[0].strip("- •: ") if "–" in line else line.strip("- •")
+        query = skill.replace(" ", "+")
+        search_link = f"https://www.google.com/search?q={query}+course"
+        st.markdown(f"- {skill} → [Find a course]({search_link})")
         else:
             st.markdown(f"- {line}")
 
