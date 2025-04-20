@@ -102,8 +102,8 @@ if submit:
             st.session_state.skill_selections = {skill: False for skill in generated_skills}
 
         for skill in generated_skills:
-            if skill not in st.session_state.skill_selections:
-    st.session_state.skill_selections[skill] = False
+                if skill not in st.session_state.skill_selections:
+        st.session_state.skill_selections[skill] = False
 st.session_state.skill_selections[skill] = st.checkbox(skill, key=skill, value=st.session_state.skill_selections[skill])
 
         confirm = st.button("✅ Confirm Skills Selection")
