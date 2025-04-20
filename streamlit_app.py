@@ -131,7 +131,7 @@ if submit:
 
 st.subheader("📚 Recommended Skills & Learning Resources")
 # Convert plain text list to markdown with clickable links (basic heuristic)
-for line in learning_tips.split("\n"):
+for line in suggestions.split("\n"):
     if line.strip():
         skill = line.split("–")[0].strip("- •: ") if "–" in line else line.strip("- •")
         query = skill.replace(" ", "+")
