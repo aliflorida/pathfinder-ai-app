@@ -101,14 +101,16 @@ if submit:
         if "skill_selections" not in st.session_state:
             st.session_state.skill_selections = {skill: False for skill in generated_skills}
 
-        for skill in generated_skills:
-    if "skill_selections" not in st.session_state:
-        st.session_state.skill_selections = {}
+        if "skill_selections" not in st.session_state:
+    st.session_state.skill_selections = {}
+
+for skill in generated_skills:
     if skill not in st.session_state.skill_selections:
         st.session_state.skill_selections[skill] = False
+
     st.session_state.skill_selections[skill] = st.checkbox(
         skill,
-        key=skill,
+        key=f"skill_{skill}",
         value=st.session_state.skill_selections[skill]
     )
 
