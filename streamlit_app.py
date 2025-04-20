@@ -99,9 +99,15 @@ if submit:
         st.markdown("Check all skills you have experience with:")
         skill_selections = {}
         for skill in generated_skills:
-            skill_selections[skill] = st.checkbox(skill)
+            skill_selections[skill] = st.checkbox(skill, key=skill)
 
-        if st.button("Confirm Skills Selection"):
+        confirm = st.button("✅ Confirm Skills Selection")
+        reset = st.button("🔄 Clear and Re-select Skills")
+
+        if reset:
+            st.experimental_rerun()
+
+        if confirm:
             selected_skills = [skill for skill, checked in skill_selections.items() if checked]
             custom_skills = st.text_input("Additional Skills (optional)")
             missing_skills = [s for s in generated_skills if s not in selected_skills]
