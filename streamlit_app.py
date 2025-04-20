@@ -99,9 +99,6 @@ if submit:
         st.markdown("Check all skills you have experience with:")
 
         if "skill_selections" not in st.session_state:
-            st.session_state.skill_selections = {skill: False for skill in generated_skills}
-
-        if "skill_selections" not in st.session_state:
     st.session_state.skill_selections = {}
 
 for skill in generated_skills:
