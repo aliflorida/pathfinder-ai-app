@@ -98,7 +98,19 @@ if submit:
             with st.spinner(f"Loading skill assessment for {industry_to_use}..."):
                 skill_prompt = f"List 5 essential skills that professionals in the {industry_to_use} industry should have. Respond with only the list, no explanation."
                 skill_response = model.generate_content(skill_prompt)
-            generated_skills = [skill.strip("-• ") for skill in skill_response.text.strip().split("\\n") if skill.strip()]
+                st.code(skill_response.text, language="markdown")
+                raw_skills = skill_response.text.strip().split("")
+                if not raw_skills or all(s.strip() == "" for s in raw_skills):
+                    raw_skills = [
+                        "Strategic Communications",
+                        "Voter Outreach",
+                        "Fundraising",
+                        "Campaign Management",
+                        "Political Research"
+                    ]
+                generated_skills = [skill.strip("-• ") for skill in raw_skills if skill.strip()]
+                generated_skills = [skill.strip("-• ") for skill in skill_response.text.strip().split("
+") if skill.strip()]
 
             st.subheader(f"{industry_to_use} Skill Check")
             
