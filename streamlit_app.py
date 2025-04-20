@@ -108,7 +108,7 @@ if submit:
                 # st.write("📦 Raw job data:", response.json())
                 results = response.json().get("data", [])
                 if results:
-                    for job in results[:5]:
+                    for job in results[:10]:
                         st.markdown(f"**{job['job_title']}** at *{job['employer_name']}*")
                         st.caption(f"{job['job_city']}, {job['job_state']} | {job['job_employment_type']}")
                         st.write(job['job_description'][:250] + "...")
