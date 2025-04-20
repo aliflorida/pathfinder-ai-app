@@ -54,7 +54,6 @@ st.markdown("Get resume summaries + job fit insights powered by Gemini.")
 with st.form("input_form"):
     name = st.text_input("Name")
     role = st.text_input("Current Role")
-    skills = st.text_input("Key Skills")
     goal = st.text_input("Career Goal")
     tone = st.selectbox(
         "Choose a tone for your resume summary",
@@ -88,6 +87,7 @@ with st.form("input_form"):
 selected_skills = []
 missing_skills = []
 generated_skills = []
+custom_skills = ""
 
 if submit:
     if industry_to_use:
@@ -101,6 +101,8 @@ if submit:
             if st.checkbox(f"Do you have experience with {skill}?"):
                 selected_skills.append(skill)
 
+        custom_skills = st.text_input("Additional Skills (optional)")
+
         missing_skills = [s for s in generated_skills if s not in selected_skills]
 
         if missing_skills:
@@ -111,7 +113,10 @@ if submit:
                 st.markdown(f"**{skill}**: {link_response.text.strip()}")
 
     with st.spinner("Generating resume and retrieving job insights..."):
-        combined_skills = skills + (", " + ", ".join(selected_skills) if selected_skills else "")
+        combined_skills = ", ".join(selected_skills)
+        if custom_skills:
+            combined_skills += ", " + custom_skills
+
         prompt = f"""
         Write a {tone} professional resume summary for {name}, currently a {role}, \
         with skills in {combined_skills}, seeking a role in {goal}.
@@ -136,8 +141,10 @@ if submit:
                 response = requests.get(job_api_url, headers=headers, params=params)
                 response.raise_for_status()
                 results = response.json().get("data", [])
+
                 if results:
-                    for job in results[:5]:
+                    job_count = st.radio("How many job listings would you like to see?", [5, 10, 15], index=0)
+                    for job in results[:job_count]:
                         st.markdown(f"**{job['job_title']}** at *{job['employer_name']}*")
                         st.caption(f"{job['job_city']}, {job['job_state']} | {job['job_employment_type']}")
                         st.write(job['job_description'][:250] + "...")
