@@ -130,8 +130,7 @@ if submit:
             st.caption("⚠️ Job search API not configured or query missing. Add your JSEARCH_API_KEY to enable this feature.")
 
         st.subheader("📚 Recommended Skills & Learning Resources")
-        for line in learning_tips.split("
-"):
+        for line in learning_tips.split("\n"):
             if line.strip():
                 skill = line.split("–")[0].strip("- •: ") if "–" in line else line.strip("- •")
                 query = skill.replace(" ", "+")
