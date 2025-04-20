@@ -82,6 +82,14 @@ with st.form("input_form"):
 
 if submit:
     with st.spinner("Generating resume and retrieving job insights..."):
+        # Generate skill recommendations and learning resources
+        learning_prompt = f"""
+        For someone aiming to become a {goal}, list 5 high-impact skills they should develop.
+        For each skill, recommend 1 way to learn more (course, certification, online resource).
+        Respond in bullet points.
+        """
+        learning_response = model.generate_content(learning_prompt)
+        learning_tips = learning_response.text.strip()
         prompt = f"""
         Write a {tone} professional resume summary for {name}, currently a {role}, \
         with skills in {skills}, seeking a role in {goal}.
@@ -108,7 +116,7 @@ if submit:
                 # st.write("📦 Raw job data:", response.json())
                 results = response.json().get("data", [])
                 if results:
-                    for job in results[:10]:
+                    for job in results[:5]:
                         st.markdown(f"**{job['job_title']}** at *{job['employer_name']}*")
                         st.caption(f"{job['job_city']}, {job['job_state']} | {job['job_employment_type']}")
                         st.write(job['job_description'][:250] + "...")
@@ -120,5 +128,15 @@ if submit:
                 st.error(f"Job search failed: {str(e)}")
         else:
             st.caption("⚠️ Job search API not configured or query missing. Add your JSEARCH_API_KEY to enable this feature.")
+
+st.subheader("📚 Recommended Skills & Learning Resources")
+# Convert plain text list to markdown with clickable links (basic heuristic)
+for line in learning_tips.split("
+"):
+    if line.strip():
+        if "http" in line:
+            st.markdown(f"- {line}")
+        else:
+            st.markdown(f"- {line}")
 
 st.caption("Created by Alison Morano | Powered by Gemini 1.5 + FAISS + LangChain + JSearch")
