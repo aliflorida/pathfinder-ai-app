@@ -109,8 +109,7 @@ if submit:
                         "Political Research"
                     ]
                 generated_skills = [skill.strip("-• ") for skill in raw_skills if skill.strip()]
-                generated_skills = [skill.strip("-• ") for skill in skill_response.text.strip().split("
-") if skill.strip()]
+                generated_skills = [skill.strip("-• ") for skill in skill_response.text.strip().split("") if skill.strip()]
 
             st.subheader(f"{industry_to_use} Skill Check")
             
