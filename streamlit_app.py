@@ -61,13 +61,45 @@ with st.form("input_form"):
         ["professional", "confident", "enthusiastic", "strategic", "creative"]
     )
     location = st.text_input("Job Search Location (optional)")
+    industry = st.selectbox(
+        "Select Your Industry (optional)",
+        ["", "Marketing", "Finance", "Healthcare", "Technology", "Education", "Customer Service", "Sales", "Project Management"]
+    )
+    st.caption(
+        "🧠 Optional: Choose your industry to get a quick AI-generated skills quiz. "
+        "This helps tailor your resume and suggests learning resources for any gaps."
+    )
     submit = st.form_submit_button("Generate")
+
+selected_skills = []
+missing_skills = []
+
+if industry:
+    with st.spinner(f"Loading skill assessment for {industry}..."):
+        skill_prompt = f"List 5 essential skills that professionals in the {industry} industry should have. Respond with only the list, no explanation."
+        skill_response = model.generate_content(skill_prompt)
+        generated_skills = [skill.strip("-• ") for skill in skill_response.text.strip().split('\n') if skill.strip()]
+
+    st.subheader(f"{industry} Skill Check")
+    for skill in generated_skills:
+        if st.checkbox(f"Do you have experience with {skill}?"):
+            selected_skills.append(skill)
+
+    missing_skills = [s for s in generated_skills if s not in selected_skills]
+
+    if missing_skills:
+        st.subheader("📚 Recommended Learning for Skills You Didn't Check")
+        for skill in missing_skills:
+            link_prompt = f"Suggest a free or well-known online course or video tutorial for someone who wants to learn '{skill}'. Return only one recommendation."
+            link_response = model.generate_content(link_prompt)
+            st.markdown(f"**{skill}**: {link_response.text.strip()}")
 
 if submit:
     with st.spinner("Generating resume and retrieving job insights..."):
+        combined_skills = skills + (", " + ", ".join(selected_skills) if selected_skills else "")
         prompt = f"""
         Write a {tone} professional resume summary for {name}, currently a {role}, \
-        with skills in {skills}, seeking a role in {goal}.
+        with skills in {combined_skills}, seeking a role in {goal}.
         """
         response = model.generate_content(prompt)
         summary = response.text.strip()
