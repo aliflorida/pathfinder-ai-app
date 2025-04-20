@@ -105,7 +105,7 @@ if submit:
             try:
                 response = requests.get(job_api_url, headers=headers, params=params)
                 response.raise_for_status()
-                st.write("📦 Raw job data:", response.json())
+                # st.write("📦 Raw job data:", response.json())
                 results = response.json().get("data", [])
                 if results:
                     for job in results[:5]:
